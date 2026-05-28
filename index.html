@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINE風チャット スライド ジェネレーター</title>
+<style>
+  :root{
+    --green:#06C755; --green-d:#05a847; --chatbg:#8AABD2;
+    --ink:#1a1d21; --mute:#737a82; --line:#e3e6ea; --card:#ffffff; --bg:#eef1f4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",-apple-system,
+      BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6;
+  }
+  header.top{
+    padding:18px 24px; background:#fff; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:12px;
+  }
+  header.top .logo{
+    width:34px;height:34px;border-radius:9px;background:var(--green);color:#fff;
+    display:grid;place-items:center;font-weight:800;font-size:18px;flex:none;
+  }
+  header.top h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.01em}
+  header.top p{margin:0;font-size:12px;color:var(--mute)}
+  .wrap{max-width:1180px;margin:24px auto;padding:0 24px;
+    display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:start}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .card h2{font-size:13px;margin:0 0 14px;color:var(--mute);font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em}
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .field{flex:1;min-width:120px}
+  label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:#3a4047}
+  input,select,textarea{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;
+    font-size:14px;font-family:inherit;background:#fbfcfd;color:var(--ink);
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--green);border-color:var(--green);background:#fff}
+  textarea{min-height:300px;resize:vertical;line-height:1.7;white-space:pre}
+  .hint{font-size:12px;color:var(--mute);margin-top:8px}
+  .hint code{background:#eef1f4;padding:1px 6px;border-radius:5px;font-size:12px}
+  .btns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  button{font-family:inherit;font-weight:700;border:none;border-radius:11px;cursor:pointer;
+    font-size:14px;padding:11px 18px;transition:.15s}
+  .btn-primary{background:var(--green);color:#fff}
+  .btn-primary:hover{background:var(--green-d)}
+  .btn-primary:disabled{opacity:.55;cursor:not-allowed}
+  .btn-ghost{background:#eef1f4;color:#3a4047}
+  .btn-ghost:hover{background:#e3e7ec}
+  .status{font-size:12.5px;color:var(--mute);margin-top:10px;min-height:18px}
+  .status.err{color:#d23b3b}
+
+  /* ===== Phone preview ===== */
+  .preview-col{position:sticky;top:24px}
+  .preview-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .slide-nav{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
+  .slide-nav button{padding:4px 10px;background:#eef1f4;color:#3a4047;border-radius:8px;font-size:14px;line-height:1}
+  .phone{
+    width:300px;height:533px;margin:0 auto;background:#0b0b0d;border-radius:42px;
+    padding:11px;box-shadow:0 18px 40px rgba(0,0,0,.22);position:relative;
+  }
+  .screen{width:100%;height:100%;border-radius:32px;overflow:hidden;background:var(--chatbg);
+    display:flex;flex-direction:column;position:relative}
+  .island{position:absolute;top:9px;left:50%;transform:translateX(-50%);
+    width:78px;height:19px;background:#0b0b0d;border-radius:11px;z-index:5}
+  .phead{background:var(--green);color:#fff;padding:7px 12px 9px;flex:none}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;height:18px}
+  .sb-right{display:flex;align-items:center;gap:4px}
+  .sig{display:flex;align-items:flex-end;gap:1.5px;height:9px}
+  .sig i{width:2.5px;background:#fff;border-radius:1px}
+  .sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6px}
+  .sig i:nth-child(3){height:8px}.sig i:nth-child(4){height:10px}
+  .batt{width:18px;height:9px;border:1px solid #fff;border-radius:2px;position:relative;padding:1px}
+  .batt::after{content:"";position:absolute;right:-3px;top:2.5px;width:1.5px;height:3px;background:#fff;border-radius:0 1px 1px 0}
+  .batt i{display:block;height:100%;width:80%;background:#fff;border-radius:1px}
+  .nav{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .nav .back{font-size:22px;font-weight:700;line-height:1;margin-right:2px}
+  .nav .av{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--green);
+    display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
+  .nav .nm{font-weight:800;font-size:14px;line-height:1.15}
+  .nav .st{font-size:10px;opacity:.85}
+  .nav .menu{margin-left:auto;display:flex;flex-direction:column;gap:2.5px}
+  .nav .menu i{width:4px;height:4px;border-radius:50%;background:#fff;display:block}
+  .chat{flex:1;display:flex;flex-direction:column;gap:8px;padding:12px 11px;overflow:hidden}
+  .chat.bottom{justify-content:flex-end}
+  .chat.top{justify-content:flex-start}
+  .chat.center{justify-content:center}
+  .msg{display:flex;align-items:flex-end;gap:6px;max-width:100%;
+    opacity:1;transform:none;transition:opacity .45s ease,transform .45s ease}
+  .msg.r{justify-content:flex-end}
+  .msg .mav{width:26px;height:26px;border-radius:50%;background:#fff;color:var(--green);
+    display:grid;place-items:center;font-weight:800;font-size:12px;flex:none}
+  .bubble{padding:7px 11px;border-radius:15px;font-size:13px;line-height:1.45;
+    max-width:200px;word-break:break-word;white-space:pre-wrap;box-shadow:0 1px 1.5px rgba(0,0,0,.12)}
+  .msg.l .bubble{background:#fff;color:#1a1a1a;border-bottom-left-radius:5px}
+  .msg.r .bubble{background:var(--green);color:#fff;border-bottom-right-radius:5px}
+  .anim .msg{opacity:0;transform:translateY(14px)}
+  .anim .msg.show{opacity:1;transform:none}
+  .pinput{flex:none;background:#f4f5f7;display:flex;align-items:center;gap:8px;padding:8px 10px}
+  .pinput .plus{color:#9aa0a6;font-size:18px;font-weight:700}
+  .pinput .fld{flex:1;background:#fff;border-radius:14px;padding:6px 12px;font-size:11px;color:#9aa0a6}
+  .pinput .send{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;
+    display:grid;place-items:center;font-size:12px;flex:none}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo">L</div>
+  <div>
+    <h1>LINE風チャット スライド ジェネレーター</h1>
+    <p>会話を入力 → プレビュー確認 → アニメ付き縦型 .pptx をダウンロード</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- 入力 -->
+  <div class="card">
+    <h2>① 設定</h2>
+    <div class="row">
+      <div class="field"><label>相手の名前</label><input id="pname" value="たなか"></div>
+      <div class="field"><label>ステータス文言</label><input id="pstatus" value="オンライン"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>会話の配置</label>
+        <select id="anchor">
+          <option value="bottom">下詰め（LINE風・おすすめ）</option>
+          <option value="top">上詰め</option>
+          <option value="center">中央</option>
+        </select>
+      </div>
+      <div class="field"><label>出る間隔 (ミリ秒)</label><input id="stagger" type="number" value="800" min="100" step="100"></div>
+    </div>
+
+    <h2 style="margin-top:8px">② 会話を入力</h2>
+    <label>1行=1メッセージ ／ <code>L:</code> 相手・<code>R:</code> 自分 ／ 空行で次のスライド</label>
+    <textarea id="convo" spellcheck="false"></textarea>
+    <div class="hint">複数行の吹き出しは、次の行に <code>L:</code>/<code>R:</code> を付けずにそのまま続けて書くとつながります。</div>
+
+    <div class="btns">
+      <button class="btn-primary" id="dl">⬇ PPTXをダウンロード</button>
+      <button class="btn-ghost" id="play">▶ プレビュー再生</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <!-- プレビュー -->
+  <div class="preview-col">
+    <div class="card">
+      <div class="preview-head">
+        <h2 style="margin:0">プレビュー</h2>
+        <div class="slide-nav">
+          <button id="prev">‹</button>
+          <span id="slidelabel">1 / 1</span>
+          <button id="next">›</button>
+        </div>
+      </div>
+      <div class="phone">
+        <div class="screen">
+          <div class="island"></div>
+          <div class="phead">
+            <div class="statusbar">
+              <span>9:41</span>
+              <span class="sb-right">
+                <span class="sig"><i></i><i></i><i></i><i></i></span>
+                <span class="batt"><i></i></span>
+              </span>
+            </div>
+            <div class="nav">
+              <span class="back">‹</span>
+              <span class="av" id="navav">た</span>
+              <span><span class="nm" id="navname">たなか</span><br><span class="st" id="navst">オンライン</span></span>
+              <span class="menu"><i></i><i></i><i></i></span>
+            </div>
+          </div>
+          <div class="chat bottom" id="chat"></div>
+          <div class="pinput">
+            <span class="plus">＋</span>
+            <span class="fld">メッセージを入力</span>
+            <span class="send">➤</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SAMPLE = `L: おつかれさま！
+L: ちょっと聞いてほしいことがあって
+R: どうしたの？
+
+L: 最近、毎回これに時間取られててさ
+L: 正直けっこうしんどいんだよね
+R: あー、その気持ちめっちゃ分かる
+
+R: 実はそれ、いい方法があるんだ
+L: えっ、ほんと！？
+L: 教えて教えて！
+
+R: これを使うと、作業がほぼ自動で終わる
+L: そんなに変わるもの？
+R: うん、まず一回試してみてほしい
+
+L: やってみた…！
+L: うわ、ほんとに一瞬で終わった😳
+R: でしょ？最初みんなそうなる`;
+
+const $ = id => document.getElementById(id);
+const convo = $("convo"), chat = $("chat"), status = $("status");
+let slides = [], cur = 0;
+
+function parse(text){
+  const out = []; let s = []; let last = null;
+  for(const raw of text.split("\n")){
+    if(raw.trim() === ""){ if(s.length){out.push(s); s=[]; last=null;} continue; }
+    const m = /^([LRlr])[:：]\s?(.*)$/.exec(raw);
+    if(m){ last = {side:m[1].toUpperCase(), text:m[2]}; s.push(last); }
+    else { if(last){ last.text += "\n"+raw.trim(); } else { last={side:"L",text:raw.trim()}; s.push(last);} }
+  }
+  if(s.length) out.push(s);
+  return out;
+}
+
+function initial(){ const n = $("pname").value.trim(); return n ? n[0] : "?"; }
+
+function renderHeader(){
+  $("navname").textContent = $("pname").value || "相手";
+  $("navst").textContent = $("pstatus").value || "";
+  $("navav").textContent = initial();
+}
+
+function renderSlide(animate){
+  renderHeader();
+  chat.className = "chat " + $("anchor").value + (animate ? " anim" : "");
+  chat.innerHTML = "";
+  const slide = slides[cur] || [];
+  slide.forEach(m=>{
+    const row = document.createElement("div");
+    row.className = "msg " + (m.side === "R" ? "r" : "l");
+    if(m.side !== "R"){
+      const av = document.createElement("div"); av.className="mav"; av.textContent=initial();
+      row.appendChild(av);
+    }
+    const b = document.createElement("div"); b.className="bubble"; b.textContent=m.text;
+    row.appendChild(b);
+    chat.appendChild(row);
+  });
+  $("slidelabel").textContent = (slides.length? cur+1 : 0) + " / " + slides.length;
+}
+
+function refresh(keep){
+  slides = parse(convo.value);
+  if(!keep) cur = Math.min(cur, Math.max(0, slides.length-1));
+  if(cur > slides.length-1) cur = Math.max(0, slides.length-1);
+  renderSlide(false);
+}
+
+function play(){
+  renderSlide(true);
+  const rows = [...chat.querySelectorAll(".msg")];
+  const step = Math.max(100, parseInt($("stagger").value)||800);
+  rows.forEach((r,i)=> setTimeout(()=> r.classList.add("show"), 60 + i*step));
+}
+
+$("prev").onclick = ()=>{ if(cur>0){cur--; renderSlide(false);} };
+$("next").onclick = ()=>{ if(cur<slides.length-1){cur++; renderSlide(false);} };
+$("play").onclick = play;
+["pname","pstatus","anchor"].forEach(id=> $(id).addEventListener("input", ()=>renderSlide(false)));
+let t; convo.addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(()=>refresh(true), 250); });
+
+$("dl").onclick = async ()=>{
+  const payload = {
+    partner_name: $("pname").value.trim(),
+    partner_status: $("pstatus").value,
+    anchor: $("anchor").value,
+    stagger_ms: parseInt($("stagger").value)||800,
+    conversation: parse(convo.value).map(s=> s.map(m=>[m.side, m.text]))
+  };
+  if(!payload.conversation.length){ status.className="status err"; status.textContent="会話が空です。"; return; }
+  const btn = $("dl"); btn.disabled = true;
+  status.className="status"; status.textContent="生成中…";
+  try{
+    const res = await fetch("/api/generate", {
+      method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload)
+    });
+    if(!res.ok){ const e = await res.json().catch(()=>({error:res.statusText})); throw new Error(e.error||"生成失敗"); }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href=url; a.download="line_chat.pptx"; a.click();
+    URL.revokeObjectURL(url);
+    status.textContent = "✅ ダウンロードしました（"+payload.conversation.length+"スライド）";
+  }catch(err){ status.className="status err"; status.textContent="エラー: "+err.message; }
+  finally{ btn.disabled = false; }
+};
+
+convo.value = SAMPLE;
+refresh(false);
+</script>
+</body>
+</html>

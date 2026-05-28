@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.vercel
+.DS_Store
+test_out.*
+t-*.jpg
