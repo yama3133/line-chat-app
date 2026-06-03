@@ -2,7 +2,7 @@
 title: "From static slides to a postable video: finishing my LINE-style chat generator with GitHub Copilot"
 published: false
 tags: devchallenge, githubchallenge
-cover_image:
+cover_image: https://raw.githubusercontent.com/yama3133/line-chat-app/main/assets/cover.jpg
 ---
 
 *This is a submission for the GitHub Finish-Up-A-Thon Challenge.*
