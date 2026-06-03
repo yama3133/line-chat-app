@@ -131,7 +131,7 @@
           <option value="center">中央</option>
         </select>
       </div>
-      <div class="field"><label>出る間隔 (ミリ秒)</label><input id="stagger" type="number" value="800" min="100" step="100"></div>
+      <div class="field"><label>出る間隔 (ミリ秒)</label><input id="stagger" type="number" value="1500" min="100" step="100"></div>
     </div>
 
     <h2 style="margin-top:8px">② 会話を入力</h2>
@@ -142,6 +142,12 @@
     <div class="btns">
       <button class="btn-primary" id="dl">⬇ PPTXをダウンロード</button>
       <button class="btn-ghost" id="play">▶ プレビュー再生</button>
+      <select id="vfmt" style="flex:none;width:auto;padding:11px 10px">
+        <option value="mp4">MP4</option>
+        <option value="webm">WebM</option>
+        <option value="gif">GIF</option>
+      </select>
+      <button class="btn-primary" id="dlvideo">🎬 動画を書き出し</button>
     </div>
     <div class="status" id="status"></div>
   </div>
@@ -296,8 +302,36 @@ $("dl").onclick = async ()=>{
   finally{ btn.disabled = false; }
 };
 
+$("dlvideo").onclick = async ()=>{
+  const slide = slides[cur] || [];
+  if(!slide.length){ status.className="status err"; status.textContent="会話が空です。"; return; }
+  const opts = {
+    name: $("pname").value.trim() || "相手",
+    status: $("pstatus").value,
+    anchor: $("anchor").value,
+    stagger: parseInt($("stagger").value)||800,
+    messages: slide.map(m=>({ side:m.side, text:m.text })),
+  };
+  const fmt = $("vfmt").value;
+  const btn = $("dlvideo"); btn.disabled = true;
+  status.className="status"; status.textContent="録画準備中…";
+  try{
+    const onProgress = p => { status.textContent = (fmt==='gif' ? "GIF生成中… " : "録画中… ") + Math.round(p*100) + "%"; };
+    const { blob, ext } = fmt === 'gif'
+      ? await recordGif(opts, { onProgress })
+      : await recordVideo(opts, { format: fmt, onProgress });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href=url; a.download="line_chat."+ext; a.click();
+    URL.revokeObjectURL(url);
+    status.textContent = "✅ 動画を書き出しました（"+ext+" / "+Math.round(blob.size/1024)+"KB）";
+  }catch(err){ status.className="status err"; status.textContent="エラー: "+(err && err.message || err); }
+  finally{ btn.disabled = false; }
+};
+
 convo.value = SAMPLE;
 refresh(false);
 </script>
+<script src="gif.js"></script>
+<script src="video.js"></script>
 </body>
 </html>
