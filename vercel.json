@@ -2,10 +2,15 @@
   "version": 2,
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
+    { "src": "video.js", "use": "@vercel/static" },
+    { "src": "gif.js", "use": "@vercel/static" },
+    { "src": "gif.worker.js", "use": "@vercel/static" },
+    { "src": "assets/**", "use": "@vercel/static" },
     { "src": "api/generate.py", "use": "@vercel/python" }
   ],
   "routes": [
     { "src": "/api/generate", "dest": "/api/generate.py" },
+    { "handle": "filesystem" },
     { "src": "/", "dest": "/index.html" }
   ]
 }
